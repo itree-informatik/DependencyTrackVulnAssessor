@@ -1,0 +1,32 @@
+# ---- Secrets ----
+# Real API keys live in .NET User Secrets (%APPDATA%\Microsoft\UserSecrets\<id>\secrets.json),
+# not in the repo. Local appsettings overrides are no longer supported.
+
+# ---- Generated CSVs ----
+*.csv
+exports/
+
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+*.pidb
+*.userprefs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+*.swp
+*.log
+.vs/
+.vscode/
+.idea/
+
+# ---- Claude Code ----
+.claude/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
