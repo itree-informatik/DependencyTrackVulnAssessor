@@ -61,7 +61,21 @@ public static class ApplyCommand
         Console.WriteLine($"{rows.Count} bewertete Zeilen aus CSV geladen.\n");
 
         using var client = new DTrackClient(cfg);
-        var projects = await client.ListProjectsAsync(ct).ConfigureAwait(false);
+        List<DtProject> projects;
+        try
+        {
+            projects = await client.ListProjectsAsync(ct).ConfigureAwait(false);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.Error.WriteLine($"Projektliste konnte nicht geladen werden: {ex.Message}");
+            return 1;
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            Console.Error.WriteLine("Projektliste konnte nicht geladen werden (HTTP-Timeout).");
+            return 1;
+        }
         Console.WriteLine($"{projects.Count} Projekte in DT gefunden.\n");
 
         var index = await BuildFindingIndexAsync(client, projects, ct).ConfigureAwait(false);
