@@ -62,7 +62,7 @@ Models.cs             all DTOs plus internal aggregation and CSV types in one fi
 
 ### Apply Idempotency
 
-`ApplyCommand.ApplyRowAsync` (`ApplyCommand.cs:238`) skips when `m.CurrentSuppressed == targetSuppressed` **and** the comment is already contained as a substring in the DT comment field. If you touch the idempotency check, keep in mind: DT comments are an append-only history, which is why `Contains` is used instead of equality.
+`ApplyCommand.ApplyRowAsync` (`ApplyCommand.cs:238`) skips when `m.CurrentSuppressed == targetSuppressed` **and** the comment is already contained as a substring in the DT comment field. If you touch the idempotency check, keep in mind: DT comments are an append-only history, which is why `Contains` is used instead of equality. The comment history itself is loaded in `BuildFindingIndexAsync` via one `GetAnalysisDetailAsync` call per already-assessed finding — the findings endpoint always returns `analysis.comment` as `null` (see Comment Pre-Fill below), so without that call the comment part of the check would never match.
 
 ### Analysis State Handling
 

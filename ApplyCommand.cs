@@ -235,6 +235,37 @@ public static class ApplyCommand
                     index[key] = list;
                 }
 
+                // Der Findings-Endpoint liefert analysis.comment immer als null — den Verlauf gibt
+                // es nur per separatem GET /api/v1/analysis. Ohne diesen Call waere CurrentComment
+                // immer leer und der Comment-Teil des Idempotenz-Checks wirkungslos (jeder
+                // apply-Lauf haengt den Kommentar erneut an die append-only Historie an).
+                // Detail-Call wie im Export nur fuer Findings, die schon eine Bewertung haben.
+                var currentComment = "";
+                var hasAnalysis = f.Analysis?.IsSuppressed == true
+                                  || !string.IsNullOrEmpty((f.Analysis?.State ?? "").Trim());
+                if (hasAnalysis)
+                {
+                    try
+                    {
+                        var detail = await client.GetAnalysisDetailAsync(p.Uuid, f.Component.Uuid!, f.Vulnerability.Uuid!, ct).ConfigureAwait(false);
+                        if (detail?.AnalysisComments is { } comments)
+                        {
+                            currentComment = string.Join(
+                                "\n",
+                                comments.Where(c => !string.IsNullOrWhiteSpace(c.Comment)).Select(c => c.Comment!.Trim()));
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Console.WriteLine($"  WARNUNG: Analysis-Detail fuer {key.VulnId}/{key.ComponentName} uebersprungen ({ex.Message})");
+                    }
+                    catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                    {
+                        Console.WriteLine($"  WARNUNG: Analysis-Detail fuer {key.VulnId}/{key.ComponentName} uebersprungen (HTTP-Timeout)");
+                    }
+                    await Task.Delay(50, ct).ConfigureAwait(false);
+                }
+
                 list.Add(new FindingMatch
                 {
                     ProjectUuid = p.Uuid,
@@ -244,7 +275,7 @@ public static class ApplyCommand
                     VulnerabilityUuid = f.Vulnerability.Uuid!,
                     CurrentSuppressed = f.Analysis?.IsSuppressed == true,
                     CurrentState = f.Analysis?.State,
-                    CurrentComment = f.Analysis?.Comment ?? "",
+                    CurrentComment = currentComment,
                 });
             }
 
