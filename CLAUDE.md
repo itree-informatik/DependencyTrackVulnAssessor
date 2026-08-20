@@ -58,7 +58,7 @@ Models.cs             all DTOs plus internal aggregation and CSV types in one fi
 
 - Separator `;`, UTF-8 **with BOM** (Excel compatible, see `ExportCommand.WriteTemplate`).
 - Column names exactly as in `CsvTemplateRow`. `ApplyCommand.LoadCsv` accepts both PascalCase (`VulnSource`) and snake_case (`vuln_source`) as a header fallback — when extending, offer both variants so older CSVs do not break.
-- `Suppress` values are parsed leniently by `ApplyCommand.ParseBool`: `yes/y/ja/j/true/1/x` → true, `no/n/nein/false/0` → false, anything else → null = the row is ignored (unless a comment is set).
+- `Suppress` values are parsed leniently by `ApplyCommand.ParseBool`: `yes/y/ja/j/true/1/x` → true, `no/n/nein/false/0` → false, anything else → null = the row is ignored (unless a comment or `AnalysisState` is set — a row is applied as soon as any of the three user columns has a value).
 
 ### Apply Idempotency
 
