@@ -60,8 +60,11 @@ public sealed class DTrackClient : IDisposable
 
             all.AddRange(batch);
 
-            var total = ReadTotal(resp.Headers, all.Count);
-            if (all.Count >= total) break;
+            // Ohne X-Total-Count (z.B. weil ein Proxy Custom-Header strippt) weiter paginieren,
+            // bis eine Seite nicht mehr voll ist — sonst wuerden still nur die ersten 100
+            // Projekte geladen.
+            var total = ReadTotal(resp.Headers);
+            if (total is int t ? all.Count >= t : batch.Count < PageSize) break;
             page++;
         }
         return all;
@@ -142,7 +145,7 @@ public sealed class DTrackClient : IDisposable
             $"Antwort-Auszug: {Truncate(preview, 200)}");
     }
 
-    private static int ReadTotal(HttpResponseHeaders headers, int fallback)
+    private static int? ReadTotal(HttpResponseHeaders headers)
     {
         if (headers.TryGetValues("X-Total-Count", out var values))
         {
@@ -151,7 +154,7 @@ public sealed class DTrackClient : IDisposable
                 if (int.TryParse(v, out var n)) return n;
             }
         }
-        return fallback;
+        return null;
     }
 
     private static string Truncate(string s, int max) =>
