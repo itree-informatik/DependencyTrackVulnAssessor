@@ -91,7 +91,8 @@ public static class ApplyCommand
         Console.WriteLine($"  Fehlgeschlagen:             {totalErrors}");
         if (dryRun) Console.WriteLine("\n(Dry-Run: nichts wurde tatsaechlich geschrieben.)");
 
-        return 0;
+        // Teilausfaelle (fehlgeschlagene PUTs) sollen fuer CI/Skripte am Exit-Code erkennbar sein.
+        return totalErrors > 0 ? 1 : 0;
     }
 
     // -----------------------------------------------------------------------
