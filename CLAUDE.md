@@ -18,7 +18,7 @@ dotnet run -- apply --dry-run
 dotnet run -- apply path/to/assessed.csv
 
 # Single-file publish (runtime required on target machine)
-dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
+dotnet publish DependencyTrackVulnAssessor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
 # Output: bin/Release/net10.0/win-x64/publish/dtrack-assessor.exe
 ```
 

@@ -60,8 +60,8 @@ The CSV becomes your "source of truth". If Dependency-Track loses your assessmen
 ```bash
 git clone https://github.com/<your-user>/DependencyTrackVulnAssessor.git
 cd DependencyTrackVulnAssessor
-dotnet restore
-dotnet build -c Release
+dotnet restore DependencyTrackVulnAssessor.slnx
+dotnet build DependencyTrackVulnAssessor.slnx -c Release
 ```
 
 The compiled exe ends up at `bin/Release/net10.0/dtrack-assessor.exe`.
@@ -69,7 +69,7 @@ The compiled exe ends up at `bin/Release/net10.0/dtrack-assessor.exe`.
 If you want a single-file variant:
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
+dotnet publish DependencyTrackVulnAssessor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
 ```
 
 Or just run it directly from the repo:
@@ -235,7 +235,7 @@ Separator `;`, UTF-8 with BOM. Columns:
 ### Local Release Build
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
+dotnet publish DependencyTrackVulnAssessor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
 ```
 
 Output: `bin/Release/net10.0/win-x64/publish/dtrack-assessor.exe`. Requires the .NET 10 runtime on the target system.
@@ -243,7 +243,7 @@ Output: `bin/Release/net10.0/win-x64/publish/dtrack-assessor.exe`. Requires the 
 ### Standalone (no .NET installed)
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+dotnet publish DependencyTrackVulnAssessor.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
 The result is larger (~60 MB) but runs without a .NET installation.
@@ -261,8 +261,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '10.0.x' }
-      - run: dotnet build -c Release
-      - run: dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
+      - run: dotnet build DependencyTrackVulnAssessor.slnx -c Release
+      - run: dotnet publish DependencyTrackVulnAssessor.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true
       - uses: actions/upload-artifact@v4
         with:
           name: dtrack-assessor
