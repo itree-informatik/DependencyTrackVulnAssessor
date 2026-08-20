@@ -67,7 +67,7 @@ public static class ApplyCommand
         var index = await BuildFindingIndexAsync(client, projects, ct).ConfigureAwait(false);
         Console.WriteLine($"\n{index.Count} eindeutige Finding-Keys in DT.\n");
 
-        int totalChanged = 0, totalSkipped = 0, totalMissing = 0;
+        int totalChanged = 0, totalSkipped = 0, totalMissing = 0, totalErrors = 0;
 
         foreach (var row in rows)
         {
@@ -78,15 +78,17 @@ public static class ApplyCommand
                 continue;
             }
 
-            var (changed, skipped) = await ApplyRowAsync(client, row, matches, dryRun, ct).ConfigureAwait(false);
+            var (changed, skipped, errors) = await ApplyRowAsync(client, row, matches, dryRun, ct).ConfigureAwait(false);
             totalChanged += changed;
             totalSkipped += skipped;
+            totalErrors += errors;
         }
 
         Console.WriteLine("\n--- Zusammenfassung ---");
         Console.WriteLine($"  Geaendert:                  {totalChanged}");
         Console.WriteLine($"  Schon aktuell (skipped):    {totalSkipped}");
         Console.WriteLine($"  Nicht in DT gefunden:       {totalMissing}");
+        Console.WriteLine($"  Fehlgeschlagen:             {totalErrors}");
         if (dryRun) Console.WriteLine("\n(Dry-Run: nichts wurde tatsaechlich geschrieben.)");
 
         return 0;
@@ -288,14 +290,14 @@ public static class ApplyCommand
     // Eine CSV-Zeile auf alle Matches anwenden
     // -----------------------------------------------------------------------
 
-    private static async Task<(int changed, int skipped)> ApplyRowAsync(
+    private static async Task<(int changed, int skipped, int errors)> ApplyRowAsync(
         DTrackClient client,
         AssessedRow row,
         List<FindingMatch> matches,
         bool dryRun,
         CancellationToken ct)
     {
-        int changed = 0, skipped = 0;
+        int changed = 0, skipped = 0, errors = 0;
 
         foreach (var m in matches)
         {
@@ -340,14 +342,18 @@ public static class ApplyCommand
                 {
                     if (await client.PutAnalysisAsync(payload, ct).ConfigureAwait(false))
                         changed++;
+                    else
+                        errors++;
                 }
                 catch (HttpRequestException ex)
                 {
                     Console.Error.WriteLine($"  FEHLER: PUT fehlgeschlagen ({ex.Message})");
+                    errors++;
                 }
                 catch (OperationCanceledException) when (!ct.IsCancellationRequested)
                 {
                     Console.Error.WriteLine("  FEHLER: PUT fehlgeschlagen (HTTP-Timeout)");
+                    errors++;
                 }
             }
             else
@@ -358,6 +364,6 @@ public static class ApplyCommand
             await Task.Delay(50, ct).ConfigureAwait(false);
         }
 
-        return (changed, skipped);
+        return (changed, skipped, errors);
     }
 }
