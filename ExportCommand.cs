@@ -116,9 +116,9 @@ public static class ExportCommand
                     var detail = await client.GetAnalysisDetailAsync(p.Uuid, f.Component.Uuid!, f.Vulnerability.Uuid!, ct).ConfigureAwait(false);
                     detailCalls++;
                     var userComment = ExtractLatestUserComment(detail);
-                    if (!string.IsNullOrEmpty(userComment))
+                    if (userComment is not null)
                     {
-                        entry.ExistingComments.Add(userComment);
+                        entry.ExistingComments.Add((userComment.Timestamp ?? 0L, userComment.Comment!.Trim()));
                     }
                 }
                 catch (HttpRequestException ex)
@@ -172,8 +172,11 @@ public static class ExportCommand
     private static string DefaultSuppress(AggregatedFinding e) =>
         e.CurrentlySuppressedIn.Count > 0 ? "yes" : "";
 
-    // Haeufigsten Comment uebernehmen; bei Gleichstand lexikographisch ersten.
-    private static string DefaultComment(AggregatedFinding e) => MostCommon(e.ExistingComments);
+    // Neuesten Comment (per Timestamp ueber alle Projekte) uebernehmen.
+    private static string DefaultComment(AggregatedFinding e) =>
+        e.ExistingComments.Count == 0
+            ? ""
+            : e.ExistingComments.OrderByDescending(c => c.Timestamp).First().Comment;
 
     // Haeufigsten Analysis-State uebernehmen (NOT_AFFECTED, FALSE_POSITIVE, ...).
     private static string DefaultAnalysisState(AggregatedFinding e) => MostCommon(e.ExistingStates);
@@ -200,14 +203,13 @@ public static class ExportCommand
     /// automatische Marker ("Suppressed", "Analysis: NOT_SET → NOT_AFFECTED", "Severity: X → Y"),
     /// die wir wegfiltern.
     /// </summary>
-    private static string ExtractLatestUserComment(DtAnalysisDetail? detail)
+    private static DtAnalysisComment? ExtractLatestUserComment(DtAnalysisDetail? detail)
     {
-        if (detail?.AnalysisComments is null) return "";
+        if (detail?.AnalysisComments is null) return null;
         return detail.AnalysisComments
             .Where(c => !string.IsNullOrWhiteSpace(c.Comment) && !IsAutoMarker(c.Comment!))
             .OrderByDescending(c => c.Timestamp ?? 0L)
-            .Select(c => c.Comment!.Trim())
-            .FirstOrDefault() ?? "";
+            .FirstOrDefault();
     }
 
     private static bool IsAutoMarker(string comment)

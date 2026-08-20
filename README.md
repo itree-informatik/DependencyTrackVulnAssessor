@@ -132,7 +132,7 @@ Produces `vulnerabilities_template.csv` with every unique vuln+component combina
 
 ### Fill in the CSV
 
-On export, existing DT assessments are pre-filled: as soon as a finding is suppressed in **at least one** project, the row is written with `Suppress=yes` and the most common DT comment in that cell. `apply` then spreads the assessment across the remaining projects on the next run — projects that are already suppressed are skipped by the idempotency check.
+On export, existing DT assessments are pre-filled: as soon as a finding is suppressed in **at least one** project, the row is written with `Suppress=yes` and the most recent DT comment (by timestamp, across all projects) in that cell. `apply` then spreads the assessment across the remaining projects on the next run — projects that are already suppressed are skipped by the idempotency check.
 
 Open in Excel, decide row by row:
 
@@ -195,7 +195,7 @@ Separator `;`, UTF-8 with BOM. Columns:
 | `CurrentlySuppressedIn` | Where it is already suppressed                       | Export      |
 | **`Suppress`**          | **`yes` / `no` / empty**                             | **User** (export pre-fills when at least one project is suppressed) |
 | **`AnalysisState`**     | **`NOT_AFFECTED`, `FALSE_POSITIVE`, `EXPLOITABLE`, `IN_TRIAGE`, `RESOLVED`, `NOT_SET` (or empty)** | **User** (export carries over the most common existing DT state; case/space/hyphen tolerant — `fp`, `false positive`, `na`, etc. are accepted) |
-| **`Comment`**           | **Free-text justification**                          | **User** (export carries over the most common DT comment) |
+| **`Comment`**           | **Free-text justification**                          | **User** (export carries over the most recent DT comment by timestamp) |
 
 ## Architecture
 

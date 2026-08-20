@@ -109,7 +109,7 @@ public sealed class AggregatedFinding
     public string Title { get; set; } = "";
     public SortedSet<string> AffectedProjects { get; } = new();
     public SortedSet<string> CurrentlySuppressedIn { get; } = new();
-    public List<string> ExistingComments { get; } = new();
+    public List<(long Timestamp, string Comment)> ExistingComments { get; } = new();
     public List<string> ExistingStates { get; } = new();
 }
 
