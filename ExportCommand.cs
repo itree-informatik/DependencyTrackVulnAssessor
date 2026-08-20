@@ -8,7 +8,7 @@ namespace DependencyTrackVulnAssessor;
 
 /// <summary>
 /// 1. Holt alle Projekte und ihre Findings.
-/// 2. Dedupliziert nach (vuln_source, vuln_id, comp_name, comp_version).
+/// 2. Dedupliziert nach (vuln_source, vuln_id, comp_name) — bewusst ohne Version, siehe FindingKey.
 /// 3. Schreibt ein CSV-Template, das der Nutzer mit Suppress-Flag + Kommentar fuellt.
 /// </summary>
 public static class ExportCommand
