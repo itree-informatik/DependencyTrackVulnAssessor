@@ -42,7 +42,7 @@ The CSV becomes your "source of truth". If Dependency-Track loses your assessmen
 - **Idempotent**: findings whose suppress flag, analysis state, and comment already match are skipped.
 - **Full analysis state control**: pick `NOT_AFFECTED`, `FALSE_POSITIVE`, `EXPLOITABLE`, `IN_TRIAGE`, `RESOLVED`, or `NOT_SET` via the `AnalysisState` column (with lenient parsing for aliases like `fp`, `na`).
 - **Dry run**: `--dry-run` previews what would change.
-- **Raw export as JSON**: alongside the CSV, the unmodified API response is saved as JSON (backup / debug).
+- **Raw export as JSON**: alongside the CSV, the findings are saved as JSON (backup / debug). Note: reduced to the fields this tool reads (component, vulnerability, analysis) — not the byte-for-byte API response.
 - **Excel-friendly CSV**: semicolon-separated, UTF-8 with BOM, opens by double-click.
 - **Self-signed certificates**: optionally via `DependencyTrack:VerifySsl=false` in user secrets or `DT_VERIFY_SSL=false` as an env var.
 
