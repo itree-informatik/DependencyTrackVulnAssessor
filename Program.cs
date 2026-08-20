@@ -31,7 +31,10 @@ public static class Program
                 _ => UnknownCommand(args[0]),
             };
         }
-        catch (OperationCanceledException)
+        // Nur echter User-Abbruch (Ctrl+C) ist "Abgebrochen." — ein HttpClient-Timeout wirft
+        // ebenfalls eine OperationCanceledException (TaskCanceledException) und soll stattdessen
+        // als normaler Fehler gemeldet werden.
+        catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
             Console.Error.WriteLine("Abgebrochen.");
             return 130;

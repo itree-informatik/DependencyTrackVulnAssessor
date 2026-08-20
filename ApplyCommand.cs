@@ -212,6 +212,12 @@ public static class ApplyCommand
                 Console.WriteLine($"  WARNUNG: uebersprungen ({ex.Message})");
                 continue;
             }
+            // HttpClient-Timeout (TaskCanceledException), kein User-Abbruch: Projekt ueberspringen.
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                Console.WriteLine("  WARNUNG: uebersprungen (HTTP-Timeout)");
+                continue;
+            }
 
             foreach (var f in findings)
             {
@@ -299,8 +305,19 @@ public static class ApplyCommand
 
             if (!dryRun)
             {
-                if (await client.PutAnalysisAsync(payload, ct).ConfigureAwait(false))
-                    changed++;
+                try
+                {
+                    if (await client.PutAnalysisAsync(payload, ct).ConfigureAwait(false))
+                        changed++;
+                }
+                catch (HttpRequestException ex)
+                {
+                    Console.Error.WriteLine($"  FEHLER: PUT fehlgeschlagen ({ex.Message})");
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    Console.Error.WriteLine("  FEHLER: PUT fehlgeschlagen (HTTP-Timeout)");
+                }
             }
             else
             {

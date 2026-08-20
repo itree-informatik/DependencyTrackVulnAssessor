@@ -59,6 +59,12 @@ public static class ExportCommand
                 Console.WriteLine($"  WARNUNG: uebersprungen ({ex.Message})");
                 continue;
             }
+            // HttpClient-Timeout (TaskCanceledException), kein User-Abbruch: Projekt ueberspringen.
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+            {
+                Console.WriteLine("  WARNUNG: uebersprungen (HTTP-Timeout)");
+                continue;
+            }
 
             rawDump[p.Label] = findings;
 
@@ -118,6 +124,10 @@ public static class ExportCommand
                 catch (HttpRequestException ex)
                 {
                     Console.WriteLine($"  WARNUNG: Analysis-Detail fuer {key.VulnId}/{key.ComponentName} uebersprungen ({ex.Message})");
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                {
+                    Console.WriteLine($"  WARNUNG: Analysis-Detail fuer {key.VulnId}/{key.ComponentName} uebersprungen (HTTP-Timeout)");
                 }
 
                 await Task.Delay(50, ct).ConfigureAwait(false);
