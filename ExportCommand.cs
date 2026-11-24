@@ -157,7 +157,7 @@ public static class ExportCommand
         // Roh-Dump speichern (optional)
         if (!string.IsNullOrEmpty(rawJsonPath))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(rawJsonPath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(rawJsonPath)) ?? ".");
             await File.WriteAllTextAsync(
                 rawJsonPath,
                 JsonSerializer.Serialize(rawDump, new JsonSerializerOptions { WriteIndented = true }),
